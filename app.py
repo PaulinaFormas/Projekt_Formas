@@ -1,7 +1,9 @@
-from PyQt5 import QtCore ,QtWidgets
+from PyQt5 import QtCore ,QtWidgets, QtGui
 from PyQt5.QtWidgets import QMainWindow, QGroupBox
 from PyQt5.QtGui import QImage, QPixmap
+
 from data import *
+import webbrowser
 
 class Window(QMainWindow):
     resized = QtCore.pyqtSignal()
@@ -10,6 +12,7 @@ class Window(QMainWindow):
         screen = application.primaryScreen()
         screenWidth = screen.geometry().width()
         screenHeight = screen.geometry().height()
+        
         self.setMinimumWidth(640)
         self.setMinimumHeight(500)
         self.width = int(screenWidth/3)
@@ -20,54 +23,143 @@ class Window(QMainWindow):
         self.initUI()
     
     def initUI(self):
+    
+        self.searchCanvas = QGroupBox(self)
+        self.searchCanvasLayout = QtWidgets.QHBoxLayout()
+        self.searchCanvas.setLayout(self.searchCanvasLayout)
+        self.searchCanvasLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
         #przycisk wyszukiwania
         self.searchButton = QtWidgets.QPushButton(self)
         self.searchButton.setText("Wyszukaj")
         self.searchButton.clicked.connect(self.search)
-        #okienko dialogowe i opis
-        self.searchItemLabel = QtWidgets.QLabel(self)
-        self.searchItemLabel.setText("Podaj nazwe produktu: ")
-        self.searchItem = QtWidgets.QLineEdit(self)
+        self.searchCanvasLayout.addWidget(self.searchButton)
+
         
-        self.canvas = QGroupBox(self)
+        
+        #search
+        
+        self.inputCanvas = QGroupBox(self.searchCanvas)
+        self.inputCanvasLayout = QtWidgets.QVBoxLayout()
+        self.inputCanvas.setLayout(self.inputCanvasLayout)
+
+        self.searchItemLabel = QtWidgets.QLabel(self.inputCanvas)
+        self.searchItemLabel.setText("Podaj nazwe produktu: ")
+        self.searchItem = QtWidgets.QLineEdit(self.inputCanvas)
+        self.inputCanvasLayout.addWidget(self.searchItemLabel)
+        self.inputCanvasLayout.addWidget(self.searchItem)
+        self.searchCanvasLayout.addWidget(self.inputCanvas)
+
+        self.searchProgress = QtWidgets.QProgressBar(self.searchCanvas)
+        self.searchProgress.setValue(0)
+        self.inputCanvasLayout.addWidget(self.searchProgress)
+
+        #okna sklepow
+
+        self.itemCanvas = QGroupBox(self)
+        self.itemCanvasLayout =QtWidgets.QHBoxLayout()
+        self.itemCanvas.setLayout(self.itemCanvasLayout)
+
+        self.cocoLayout = QtWidgets.QVBoxLayout()
+        self.mintiLayout = QtWidgets.QVBoxLayout()
+        self.makeupLayout = QtWidgets.QVBoxLayout()
+
+        self.cocoLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter )
+        self.mintiLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter )
+        self.makeupLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter )
+
+        self.cocoCanvas = QGroupBox(self.itemCanvas)
+        self.cocoCanvas.setLayout(self.cocoLayout)
+        
+        self.mintiCanvas = QGroupBox(self.itemCanvas)
+        self.mintiCanvas.setLayout(self.mintiLayout)
+        
+        self.makeupCanvas = QGroupBox(self.itemCanvas)
+        self.makeupCanvas.setLayout(self.makeupLayout)
+
+        self.itemCanvasLayout.addWidget(self.makeupCanvas)
+        self.itemCanvasLayout.addWidget(self.mintiCanvas)
+        self.itemCanvasLayout.addWidget(self.cocoCanvas)
         
         #coco
-        self.cocoLabel = QtWidgets.QLabel(self.canvas)
+        self.cocoLabel = QtWidgets.QLabel(self.cocoCanvas)
+        self.cocoLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.cocoLayout.addWidget(self.cocoLabel)
         self.cocoLabel.setText("Cocolita")
 
-        self.cocoPrice = QtWidgets.QLabel(self.canvas)
-        self.cocoPrice.setText("cena coco")
+        self.cocoPrice = QtWidgets.QLabel(self.cocoCanvas)
+        self.cocoPrice.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.cocoLayout.addWidget(self.cocoPrice)
+        self.cocoPrice.setEnabled(False)
 
-        self.cocoItem = QtWidgets.QLabel(self.canvas)
+        self.cocoItem = QtWidgets.QLabel(self.cocoCanvas)
+        self.cocoItem.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.cocoLayout.addWidget(self.cocoItem)
 
         self.cocoImage = QImage()
-        self.cocoImage_Label = QtWidgets.QLabel(self.canvas)
+        self.cocoImage_Label = QtWidgets.QLabel(self.cocoCanvas)
+        self.cocoImage_Label.setScaledContents(True)
+        self.cocoLayout.addWidget(self.cocoImage_Label)
+
+        self.cocoPageButton = QtWidgets.QPushButton(self.cocoCanvas)
+        self.cocoLayout.addWidget(self.cocoPageButton)
+        self.cocoPageButton.setText("Przejdź do strony")
+        self.cocoPageButton.clicked.connect(self.cocoClicked)
+        self.cocoPageButton.setEnabled(False)
 
 
         #minti
-        self.mintiLabel = QtWidgets.QLabel(self.canvas)
+        self.mintiLabel = QtWidgets.QLabel(self.mintiCanvas)
+        self.mintiLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.mintiLayout.addWidget(self.mintiLabel)
         self.mintiLabel.setText("Minti Shop")
 
-        self.mintiPrice = QtWidgets.QLabel(self.canvas)
-        self.mintiPrice.setText("cena minti")
+        self.mintiPrice = QtWidgets.QLabel(self.mintiCanvas)
+        self.mintiPrice.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.mintiLayout.addWidget(self.mintiPrice)
+        self.mintiPrice.setEnabled(False)
 
-        self.mintiItem = QtWidgets.QLabel(self.canvas)
+        self.mintiItem = QtWidgets.QLabel(self.mintiCanvas)
+        self.mintiItem.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.mintiLayout.addWidget(self.mintiItem)
 
         self.mintiImage = QImage()
-        self.mintiImage_Label = QtWidgets.QLabel(self.canvas)
+        self.mintiImage_Label = QtWidgets.QLabel(self.mintiCanvas)
+        self.mintiImage_Label.setScaledContents(True)
+        self.mintiLayout.addWidget(self.mintiImage_Label)
+
+        self.mintiPageButton = QtWidgets.QPushButton(self.mintiCanvas)
+        self.mintiLayout.addWidget(self.mintiPageButton)
+        self.mintiPageButton.setText("Przejdź do strony")
+        self.mintiPageButton.clicked.connect(self.mintiClicked)
+        self.mintiPageButton.setEnabled(False)
 
 
         #makeup
-        self.makeupLabel = QtWidgets.QLabel(self.canvas)
+        self.makeupLabel = QtWidgets.QLabel(self.makeupCanvas)
+        self.makeupLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.makeupLabel.setText("Makeup")
+        self.makeupLayout.addWidget(self.makeupLabel)
 
-        self.makeupPrice = QtWidgets.QLabel(self.canvas)
-        self.makeupPrice.setText("cena makeup")
+        self.makeupPrice = QtWidgets.QLabel(self.makeupCanvas)
+        self.makeupPrice.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.makeupLayout.addWidget(self.makeupPrice)
+        self.makeupPrice.setEnabled(False)
 
-        self.makeupItem = QtWidgets.QLabel(self.canvas)
+        self.makeupItem = QtWidgets.QLabel(self.makeupCanvas)
+        self.makeupItem.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.makeupLayout.addWidget(self.makeupItem)
 
         self.makeupImage = QImage()
-        self.makeupImage_Label = QtWidgets.QLabel(self.canvas)
+        self.makeupImage_Label = QtWidgets.QLabel(self.makeupCanvas)
+        self.makeupImage_Label.setScaledContents(True)
+        self.makeupLayout.addWidget(self.makeupImage_Label)
+
+        self.makeupPageButton = QtWidgets.QPushButton(self.makeupCanvas)
+        self.makeupLayout.addWidget(self.makeupPageButton)
+        self.makeupPageButton.setText("Przejdź do strony")
+        self.makeupPageButton.clicked.connect(self.makeupClicked)
+        self.makeupPageButton.setEnabled(False)
+
 
 
         
@@ -77,73 +169,94 @@ class Window(QMainWindow):
     def updateSize(self):
         self.width = self.geometry().width()
         self.height = self.geometry().height()
-        self.canvas.setGeometry(50,100,int(self.width * 0.8), int(self.height* 0.7))
-        canvasW = self.canvas.geometry().width()
-        canvasH = self.canvas.geometry().width()
-
-        self.searchButton.setGeometry(self.width- 130,40,90,40)
-        self.searchItemLabel.setGeometry(50,20,200,20)
-        self.searchItem.setGeometry(50,40,200,20)
-        
-        
-
-        self.cocoLabel.setGeometry(50,10,50,20)
-        self.mintiLabel.setGeometry(200,10,50,20)
-        self.makeupLabel.setGeometry(350,10,50,20)
-        
-        self.cocoPrice.setGeometry(50,300,50,20)
-        self.mintiPrice.setGeometry(200,300,50,20)
-        self.makeupPrice.setGeometry(350,300,50,20)
-
-        self.cocoItem.setGeometry(15,215,125,70)
-        self.mintiItem.setGeometry(150,215,125,70)
-        self.makeupItem.setGeometry(275,215,125,70)
-
-        self.cocoImage_Label.setGeometry(15,30,125,175)
-        self.cocoImage_Label.setScaledContents(True)
-        
-        self.mintiImage_Label.setGeometry(165,30,125,175)
-        self.mintiImage_Label.setScaledContents(True)
-
-        self.makeupImage_Label.setGeometry(305,30,125,175)
-        #self.makeupImage_Label.setScaledContents(True)
+        self.searchCanvas.setGeometry(10,10,self.width-10,int(self.height*0.2))
+        self.itemCanvas.setGeometry(10,int(self.height*0.2+10),self.width - 10, int(self.height-(self.height* 0.2) -10))
 
     def search(self):
         query = self.searchItem.text()
+        if query.__len__() == 0:
+            return
+        self.searchButton.setText("Szukanie...")
+        self.searchButton.setEnabled(False)
+        self.searchProgress.setValue(10)
         
+        shrugPic = QtGui.QPixmap("shrug.jpg")
         #coco
-        coco_item, coco_price, coco_image = getCoco(query)
-        self.cocoPrice.setText(coco_price)
-        self.cocoPrice.adjustSize()
+        self.coco = getCoco(query)
+        if self.coco == None:
+            self.cocoPrice.setText("--.--zł")
+            self.cocoItem.setText("Nie znaleziono")
+            self.cocoImage_Label.setPixmap(shrugPic)
+            self.cocoPageButton.setEnabled(False)
+        else:
+            self.cocoPrice.setText(self.coco["price"])
+        
+            self.cocoItem.setText(self.coco["item"])
 
+            self.cocoImage.loadFromData(self.coco["image"])
+            self.cocoImage_Label.setPixmap(QPixmap(self.cocoImage))
+        self.cocoPrice.setEnabled(True)
         self.cocoItem.setWordWrap(True)
-        self.cocoItem.setText(coco_item)
-    
-        self.cocoImage.loadFromData(coco_image)
-        self.cocoImage_Label.setPixmap(QPixmap(self.cocoImage))
-
+        self.cocoPageButton.setEnabled(True)
+        self.searchProgress.setValue(40)
         #minti
-        minti_item, minti_price, minti_image = getMinti(query)
-        self.mintiPrice.setText(minti_price)
-        self.mintiPrice.adjustSize()
+        self.minti = getMinti(query)
+        if self.minti == None:
+            self.mintiPrice.setText("--.--zł")
+            self.mintiItem.setText("Nie znaleziono")
+            self.mintiImage_Label.setPixmap(shrugPic)
+            self.mintiPageButton.setEnabled(False)
+        else :
+            self.mintiPrice.setText(self.minti["price"])
+    
+            self.mintiItem.setText(self.minti["item"])        
 
+            self.mintiImage.loadFromData(self.minti["image"])
+            self.mintiImage_Label.setPixmap(QPixmap(self.mintiImage))
+
+        self.mintiPageButton.setEnabled(True)
+        self.mintiPrice.setEnabled(True)
         self.mintiItem.setWordWrap(True)
-        self.mintiItem.setText(minti_item)
-    
-        self.mintiImage.loadFromData(minti_image)
-        self.mintiImage_Label.setPixmap(QPixmap(self.mintiImage))
-
+        self.searchProgress.setValue(70)
         #makeup
-        makeup_item, makeup_price, makeup_image = getMakeup(query)
-        self.makeupPrice.setText(makeup_price)
-        self.makeupPrice.adjustSize()
+        self.makeup = getMakeup(query)
+        if self.makeup == None:
+            self.makeupPrice.setText("--.--zł")
+            self.makeupItem.setText("Nie znaleziono")
+            self.makeupImage_Label.setPixmap(shrugPic)
+            self.makeupPageButton.setEnabled(False)
+        else :
+            self.makeupPrice.setText(self.makeup["price"])
+            
+            self.makeupItem.setText(self.makeup["item"])
 
+            self.makeupImage.loadFromData(self.makeup["image"])
+            self.makeupImage_Label.setPixmap(QPixmap(self.makeupImage))
+
+        self.makeupPageButton.setEnabled(True)
         self.makeupItem.setWordWrap(True)
-        self.makeupItem.setText(makeup_item)
+        self.makeupPrice.setEnabled(True)
+        self.searchButton.setText("Wyszukaj")
+        self.searchButton.setEnabled(True)
+        self.searchProgress.setValue(100)
     
-        self.makeupImage.loadFromData(makeup_image)
-        self.makeupImage_Label.setPixmap(QPixmap(self.makeupImage))
-        print("click")
-    
+    def cocoClicked(self):
+        try:
+            url = self.coco["url"]
+            webbrowser.open(f"https://www.cocolita.pl{url}")
+        except:
+            return
+    def mintiClicked(self):
+        try:
+            url = self.minti["url"]
+            webbrowser.open(f"https://mintishop.pl{url}")
+        except:
+            return
+    def makeupClicked(self):
+        try:
+            url = self.makeup["url"]
+            webbrowser.open(f"https://makeup.pl{url}")
+        except:
+            return
 
     
